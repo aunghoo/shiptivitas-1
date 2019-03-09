@@ -7,7 +7,7 @@ import './Board.css';
 export default class Board extends React.Component {
   constructor(props) {
     super(props);
-    const clients = this.getClients();
+    var clients = this.getClients();
     this.state = {
       clients: {
         backlog: clients.filter(client => !client.status || client.status === 'backlog'),
@@ -50,10 +50,78 @@ export default class Board extends React.Component {
       status: companyDetails[3],
     }));
   }
+
   renderSwimlane(name, clients, ref) {
     return (
       <Swimlane name={name} clients={clients} dragulaRef={ref}/>
     );
+  }
+
+  onDragOver = (ev) => {
+    ev.preventDefault();
+  }
+  onDrop = (ev, cat) => {
+    let foundid = ev.dataTransfer.getData("id");
+    let originalstatus = ev.dataTransfer.getData("status");
+    let temp = this.state.clients;
+    let card = ['0','random','testing', 'initializer'];
+    //console.log(temp);
+    
+   // let tasks = this.state.temp.complete;
+
+    if (originalstatus=="backlog"){
+      temp.backlog = temp.backlog.filter((task) => {      
+        if (task.id == foundid){
+          //console.log(task);
+          task.status = cat;
+          card = task;
+          //console.log(task.status);
+        }
+        return task.id != foundid;
+      });
+    }
+    else if (originalstatus=="in-progress"){
+      temp.inProgress = temp.inProgress.filter((task) => {      
+        if (task.id == foundid){
+          //console.log(task);
+          task.status = cat;
+          card = task;
+          //console.log(task.status);
+        }
+        return task.id != foundid;
+      });
+    }
+    else {
+      temp.complete = temp.complete.filter((task) => {      
+        if (task.id == foundid){
+          //console.log(task);
+          task.status = cat;
+          card = task;
+          //console.log(task.status);
+        }
+        return task.id != foundid;
+      });
+    }
+
+    //add the card back
+    if (cat=="backlog"){
+      temp.backlog.push(card);
+    }
+    else if (cat=="in-progress"){
+      temp.inProgress.push(card);
+    }
+    else {
+      temp.complete.push(card);
+    }
+
+    
+
+    this.setState({
+      clients: temp
+    });
+    console.log(temp);
+   
+    console.log(this.state.clients);
   }
 
   render() {
@@ -61,13 +129,19 @@ export default class Board extends React.Component {
       <div className="Board">
         <div className="container-fluid">
           <div className="row">
-            <div className="col-md-4">
+            <div className="col-md-4"
+                onDragOver={(e)=>this.onDragOver(e)}
+                onDrop={(e)=>this.onDrop(e, "backlog")}>
               {this.renderSwimlane('Backlog', this.state.clients.backlog, this.swimlanes.backlog)}
             </div>
-            <div className="col-md-4">
+            <div className="col-md-4"
+                onDragOver={(e)=>this.onDragOver(e)}
+                onDrop={(e)=>this.onDrop(e, "in-progress")}>
               {this.renderSwimlane('In Progress', this.state.clients.inProgress, this.swimlanes.inProgress)}
             </div>
-            <div className="col-md-4">
+            <div className="col-md-4"
+                onDragOver={(e)=>this.onDragOver(e)}
+                onDrop={(e)=>this.onDrop(e, "complete")}>
               {this.renderSwimlane('Complete', this.state.clients.complete, this.swimlanes.complete)}
             </div>
           </div>
